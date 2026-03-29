@@ -1,0 +1,183 @@
+# Soal 1 — Ekspedisi Pencarian Benda Pusaka Gunung Kawi
+> Sistem Operasi — Praktikum 1
+
+---
+
+## 📖 Deskripsi Soal
+
+Dalam soal ini, mahasiswa berperan sebagai asisten pribadi **Mas Amba** yang ditugaskan untuk menemukan lokasi benda pusaka yang tersembunyi di kawasan Gunung Kawi, Jawa Timur.
+
+Proses pencarian dilakukan melalui beberapa tahapan berbasis **command line dan shell scripting**, yaitu:
+
+1. Mengunduh file peta ekspedisi (`peta-ekspedisi-amba.pdf`) dari Google Drive menggunakan `gdown`
+2. Mengekstrak isi file PDF menggunakan `cat` untuk menemukan **tautan tersembunyi**
+3. Meng-clone repositori Git dari tautan tersebut
+4. Membuat script parsing (`parserkoordinat.sh`) untuk mengekstrak data koordinat dari file JSON menggunakan `awk`
+5. Membuat script analisis (`nemupusaka.sh`) untuk menghitung titik pusat koordinat
+6. Menyimpan hasil akhir ke dalam file `posisipusaka.txt`
+
+---
+
+## 🧠 Konsep yang Digunakan
+
+Soal ini menguji beberapa konsep penting dalam Sistem Operasi:
+
+- **Shell scripting** → otomatisasi proses
+- **Text processing (AWK)** → parsing data semi-terstruktur (JSON)
+- **Regex (Regular Expression)** → ekstraksi data spesifik
+- **Git** → pengambilan repository
+- **Geometri sederhana** → mencari titik tengah (midpoint)
+
+---
+
+## 📁 Struktur Folder
+
+```
+ekspedisi/
+├── peta-ekspedisi-amba.pdf
+└── peta-gunung-kawi/
+    ├── gsxtrack.json
+    ├── parserkoordinat.sh
+    ├── nemupusaka.sh
+    ├── titik-penting.txt
+    └── posisipusaka.txt
+```
+
+---
+
+## 📄 Penjelasan Tiap File
+
+### 🔹 `gsxtrack.json`
+File berformat **GeoJSON** yang berisi data koordinat lokasi.
+
+Keempat titik membentuk sebuah **persegi panjang**, sehingga titik pusatnya bisa dihitung dari dua titik diagonal.
+
+💡 Insight:
+- Data JSON tidak langsung “ramah” untuk shell → perlu parsing
+- Inilah alasan kita pakai **awk + regex**
+
+---
+
+### 🔹 `parserkoordinat.sh`
+
+Script ini berfungsi untuk:
+- Membaca file JSON
+- Mengekstrak data penting:
+  - `id`
+  - `site_name`
+  - `latitude`
+  - `longitude`
+- Mengubahnya menjadi format CSV
+
+📌 Kenapa pakai AWK?
+- AWK efisien untuk text processing di Linux
+- Bisa langsung parsing tanpa library tambahan
+
+📌 Kenapa regex?
+- Karena JSON diproses sebagai teks, bukan struktur data
+
+Output:
+```
+id,site_name,latitude,longitude
+```
+
+---
+
+### 🔹 `titik-penting.txt`
+
+Hasil parsing yang sudah bersih dan terstruktur.
+
+💡 Fungsi file ini:
+- Sebagai “jembatan” antara parsing dan perhitungan
+- Memudahkan proses selanjutnya tanpa parsing ulang
+
+---
+
+### 🔹 `nemupusaka.sh`
+
+Script ini mencari lokasi pusaka dengan menghitung **titik tengah persegi panjang**.
+
+Menggunakan konsep:
+
+```
+latitude  = (lat1 + lat3) / 2
+longitude = (lon1 + lon3) / 2
+```
+
+📌 Kenapa node_001 & node_003?
+- Karena mereka adalah titik diagonal (berseberangan)
+- Ini cara paling efisien untuk mencari pusat persegi panjang
+
+💡 Insight tambahan:
+- Konsep ini sama dengan midpoint pada koordinat kartesius
+
+---
+
+### 🔹 `posisipusaka.txt`
+
+Berisi hasil akhir:
+```
+-7.928980,112.459050
+```
+
+📌 Artinya:
+- Titik ini adalah pusat dari keempat koordinat
+- Diasumsikan sebagai lokasi benda pusaka
+
+---
+
+## ▶️ Cara Menjalankan
+
+### 1. Install dependencies
+```bash
+sudo apt install python3-pip python3-venv git -y
+```
+
+### 2. Download file
+```bash
+python3 -m venv myenv
+source myenv/bin/activate
+pip install gdown
+
+mkdir ekspedisi && cd ekspedisi
+gdown "LINK_GDRIVE" -O peta-ekspedisi-amba.pdf
+```
+
+### 3. Temukan link repo
+```bash
+cat peta-ekspedisi-amba.pdf
+```
+
+### 4. Clone repo
+```bash
+git clone LINK_REPO peta-gunung-kawi
+cd peta-gunung-kawi
+```
+
+### 5. Parsing data
+```bash
+chmod +x parserkoordinat.sh
+./parserkoordinat.sh
+```
+
+### 6. Hitung lokasi pusaka
+```bash
+chmod +x nemupusaka.sh
+./nemupusaka.sh
+```
+
+---
+
+## 🎯 Output Akhir
+
+```
+Koordinat pusat: -7.928980, 112.459050
+```
+
+---
+
+## 👤 Identitas
+
+| | |
+|---|---|
+| **Nama** | *(isi nama kamu)
